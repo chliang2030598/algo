@@ -6,6 +6,9 @@
 -  golang中slice(切片的用法)，slice `[startIndex:endIndex]` 的范围属于左闭右开，不包含 `slice[endIndex]` 的值
 -  golang中接口命名一般以er结尾
 -  uint和int类型的区别，以及转换方式
+-  golang中单元测试文件包名要与测试文件一致，测试方法为Test+测试方法名称
+-  testslice:=make([]int,length,cap)此种方式创建的切片，默认切片索引0到length-1的所有初始值为0，并且占据切片位置
+
 2. 数组相关知识点总结
 
 - 数组是线性的、长度确定的数据结构

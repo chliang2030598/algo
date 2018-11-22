@@ -11,7 +11,7 @@ type Arrayer interface {
 	isEmpty() bool
 	Insert(value int, n uint) error
 	Delete(n uint) error
-	Find(n uint) error
+	Find(n uint) (int, error)
 	Print()
 }
 
@@ -28,8 +28,8 @@ func NewArray(input []int, capacity uint) (*Array, error) {
 		return nil, errors.New("the capacity is less the array length")
 	}
 
-	newArray := make([]int, len(input), capacity)
-	newArray = append(newArray, input...)
+	newArray := make([]int, 0, capacity)
+	newArray = append(newArray, input[:]...)
 
 	array := new(Array)
 	array.Value = newArray
@@ -70,7 +70,7 @@ func (array *Array) Insert(value int, n uint) error {
 	// 插入到开头位置
 	if n == 0 {
 		//创建新数组，长度加1
-		newArray := make([]int, array.Length+1, array.Capacity)
+		newArray := make([]int, 0, array.Capacity)
 		//将元素插入到开头
 		newArray = append(newArray, value)
 		//将其他元素加入到新数组中
@@ -83,7 +83,7 @@ func (array *Array) Insert(value int, n uint) error {
 	}
 
 	// 插入到中间位置
-	newArray := make([]int, array.Length+1, array.Capacity)
+	newArray := make([]int, 0, array.Capacity)
 	index := int(n)
 	newArray = append(newArray, array.Value[:index]...)
 	newArray = append(newArray, value)
@@ -104,7 +104,7 @@ func (array *Array) Delete(n uint) error {
 	}
 	// 删除末尾元素
 	if n == array.Length-1 {
-		newArray := make([]int, array.Length-1, array.Capacity)
+		newArray := make([]int, 0, array.Capacity)
 		newArray = append(newArray, array.Value[:array.Length-1]...)
 
 		array.Value = newArray
@@ -115,14 +115,15 @@ func (array *Array) Delete(n uint) error {
 
 	// 删除首元素
 	if n == 0 {
-		newArray := make([]int, array.Length-1, array.Capacity)
+		newArray := make([]int, 0, array.Capacity)
 		newArray = append(newArray, array.Value[1:]...)
 		array.Value = newArray
 		array.Length--
+		return nil
 	}
 
 	// 删除中间元素
-	newArray := make([]int, array.Length-1, array.Capacity)
+	newArray := make([]int, 0, array.Capacity)
 	index := int(n)
 	newArray = append(newArray, array.Value[:index]...)
 	newArray = append(newArray, array.Value[index+1:]...)
@@ -135,9 +136,10 @@ func (array *Array) Delete(n uint) error {
 // Find 根据数据索引查找数组
 func (array *Array) Find(n uint) (int, error) {
 	if n > array.Length-1 {
-
+		return 0, errors.New("The index is out of bound")
 	}
-	return 0, nil
+	index := int(n)
+	return array.Value[index], nil
 }
 
 // Print 打印数组
@@ -147,5 +149,5 @@ func (array *Array) Print() {
 		temp := fmt.Sprintf("array[%d]=%d  ", i, v)
 		result = result + temp
 	}
-	fmt.Printf("%s-----len=%d-----cap=%d\n", result, array.Length, cap(array.Value))
+	fmt.Printf("%s-----len=%d-----cap=%d\n", result, array.Length, array.Capacity)
 }
