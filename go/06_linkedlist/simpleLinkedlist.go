@@ -66,6 +66,7 @@ func (linked *LinkedList) InsertAfterNode(data string, nodevalue string) error {
 		//将原来的尾部节点指向新节点
 		linkedListNode.Next = newLinkedListNode
 
+		linked.Length++
 		return nil
 	}
 
@@ -79,6 +80,45 @@ func (linked *LinkedList) InsertAfterNode(data string, nodevalue string) error {
 
 	linked.Length++
 
+	return nil
+}
+
+// Delete 删除单链表节点：分为几种情况：1 删除头部节点 2 删除一般节点 3 删除尾部节点
+func (linked *LinkedList) Delete(data string) error {
+	deleteLinkedListNode, err := linked.Find(data)
+	if err != nil {
+		return err
+	}
+
+	// 判断删除的是否是头节点
+	if deleteLinkedListNode == linked.Head {
+		secondLinkedListNode := linked.Head.Next
+		//设置新的头部节点
+		linked.Head = secondLinkedListNode
+
+		linked.Length--
+		return nil
+	} else if deleteLinkedListNode.Next == nil {
+		// 查找尾部节点的上一个节点
+		preLinkedListNode, _ := FindByPreLinkedListNode(linked.Head, deleteLinkedListNode)
+		// 重新设置尾部节点
+		preLinkedListNode.Next = nil
+		linked.Length--
+		return nil
+	}
+
+	// 删除一般节点
+	preLinkedListNode, _ := FindByPreLinkedListNode(linked.Head, deleteLinkedListNode)
+
+	// 获取删除节点的下一个节点
+	afterLinkedListNode := deleteLinkedListNode.Next
+
+	// 建立新的连接
+	preLinkedListNode.Next = afterLinkedListNode
+
+	linked.Length--
+
+	// 疑问：要不要将deletenode的next置空
 	return nil
 }
 
@@ -108,23 +148,26 @@ func findByData(value string, linkedListNode *LinkedListNode) *LinkedListNode {
 	return findByData(value, linkedListNode.Next)
 }
 
-func findByPtr(startLinkedListNode, targetLinkedListNode *LinkedListNode) (*LinkedListNode, error) {
+// FindByPreLinkedListNode 	从startLinkedListNode查找targetLinkedListNode的上一个节点
+func FindByPreLinkedListNode(startLinkedListNode, targetLinkedListNode *LinkedListNode) (*LinkedListNode, error) {
 	if startLinkedListNode == targetLinkedListNode {
 		return startLinkedListNode, nil
 	} else if startLinkedListNode.Next == nil {
 		return nil, errors.New("the linkedListNode is not exist")
 	}
-	return findByPtr(startLinkedListNode.Next, targetLinkedListNode)
+	return FindByPreLinkedListNode(startLinkedListNode.Next, targetLinkedListNode)
 }
 
+// Print 打印整个链表
 func (linked *LinkedList) Print() {
-
+	print(linked.Head)
 }
 
 func print(linkedListNode *LinkedListNode) *LinkedListNode {
 	if linkedListNode.Next == nil {
+		fmt.Printf("%p,%v\n", linkedListNode, linkedListNode)
 		return nil
 	}
-	fmt.Printf("")
+	fmt.Printf("%p,%v\t", linkedListNode, linkedListNode)
 	return print(linkedListNode.Next)
 }
