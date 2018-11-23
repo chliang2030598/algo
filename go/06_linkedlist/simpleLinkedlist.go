@@ -5,7 +5,14 @@ import (
 	"fmt"
 )
 
-// 单链表的实现LRU的实现
+// LinkedLister  LinkedList的接口定义
+type LinkedLister interface {
+	InsertAfterNode(data string, nodevalue string) error
+	InsertBeforeNode(data string, nodevalue string) error
+	Find(data string) (*LinkedListNode, error)
+	Delete(data string) error
+	Print()
+}
 
 // LinkedListNode 单链表节点的数据结构
 type LinkedListNode struct {
@@ -35,6 +42,7 @@ func NewLinkedList(data []string, capacity uint) (*LinkedList, error) {
 		if i == len(data)-1 {
 			linkedListNodeArray[i].Data = data[i]
 			linkedListNodeArray[i].Next = nil
+			break
 		}
 		linkedListNodeArray[i].Data = data[i]
 		linkedListNodeArray[i].Next = &linkedListNodeArray[i+1]
@@ -83,6 +91,41 @@ func (linked *LinkedList) InsertAfterNode(data string, nodevalue string) error {
 	return nil
 }
 
+// InsertBeforeNode value表示要插入的值，nodevalue表示已经存在节点的值(如果值有重复，默认第一个节点)，方法表示在nodevalue前插入vaule的值
+func (linked *LinkedList) InsertBeforeNode(data string, nodevalue string) error {
+
+	if linked.isFull() {
+		return errors.New("the linkedList is full")
+	}
+
+	curLinkedListNode, err := linked.Find(nodevalue)
+	if err != nil {
+		return nil
+	}
+	//判断是否为头部节点,如果在头部节点前插入，需要重置头部节点
+	if curLinkedListNode == linked.Head {
+		newLinkedListNode := new(LinkedListNode)
+		newLinkedListNode.Data = data
+		newLinkedListNode.Next = curLinkedListNode
+
+		linked.Head = newLinkedListNode
+
+		linked.Length++
+		return nil
+	}
+
+	//其他节点前插入
+	preLinkedListNode, _ := FindByPreLinkedListNode(linked.Head, curLinkedListNode)
+
+	newLinkedListNode := new(LinkedListNode)
+	newLinkedListNode.Data = data
+	newLinkedListNode.Next = curLinkedListNode
+
+	preLinkedListNode.Next = newLinkedListNode
+	linked.Length++
+	return nil
+}
+
 // Delete 删除单链表节点：分为几种情况：1 删除头部节点 2 删除一般节点 3 删除尾部节点
 func (linked *LinkedList) Delete(data string) error {
 	deleteLinkedListNode, err := linked.Find(data)
@@ -101,6 +144,7 @@ func (linked *LinkedList) Delete(data string) error {
 	} else if deleteLinkedListNode.Next == nil {
 		// 查找尾部节点的上一个节点
 		preLinkedListNode, _ := FindByPreLinkedListNode(linked.Head, deleteLinkedListNode)
+		fmt.Printf("%v\n", preLinkedListNode)
 		// 重新设置尾部节点
 		preLinkedListNode.Next = nil
 		linked.Length--
@@ -150,7 +194,7 @@ func findByData(value string, linkedListNode *LinkedListNode) *LinkedListNode {
 
 // FindByPreLinkedListNode 	从startLinkedListNode查找targetLinkedListNode的上一个节点
 func FindByPreLinkedListNode(startLinkedListNode, targetLinkedListNode *LinkedListNode) (*LinkedListNode, error) {
-	if startLinkedListNode == targetLinkedListNode {
+	if startLinkedListNode.Next == targetLinkedListNode {
 		return startLinkedListNode, nil
 	} else if startLinkedListNode.Next == nil {
 		return nil, errors.New("the linkedListNode is not exist")
@@ -163,6 +207,18 @@ func (linked *LinkedList) Print() {
 	print(linked.Head)
 }
 
+// GetTailLinkedListNode 获取尾部节点
+func (linked *LinkedList) GetTailLinkedListNode() *LinkedListNode {
+	return getTail(linked.Head)
+}
+
+func getTail(linkedListNode *LinkedListNode) *LinkedListNode {
+	if linkedListNode.Next == nil {
+		return linkedListNode
+	}
+	return getTail(linkedListNode.Next)
+}
+
 func print(linkedListNode *LinkedListNode) *LinkedListNode {
 	if linkedListNode.Next == nil {
 		fmt.Printf("%p,%v\n", linkedListNode, linkedListNode)
@@ -170,4 +226,31 @@ func print(linkedListNode *LinkedListNode) *LinkedListNode {
 	}
 	fmt.Printf("%p,%v\t", linkedListNode, linkedListNode)
 	return print(linkedListNode.Next)
+}
+
+// LRU 单链表实现LRU
+func (linked *LinkedList) LRU(data string) {
+	existNode, _ := linked.Find(data)
+	// 节点存在
+	if existNode != nil {
+		// 删除该节点
+		linked.Delete(existNode.Data)
+
+		// 将该节点插入到头
+		linked.InsertBeforeNode(data, linked.Head.Data)
+
+		return
+	}
+
+	// 节点不存在，判断容量是否已满，如果满，需要删除尾部节点，再插入到头部；不满直接插入到头部
+	if linked.isFull() {
+		tailNode := linked.GetTailLinkedListNode()
+		linked.Delete(tailNode.Data)
+
+		linked.InsertBeforeNode(data, linked.Head.Data)
+
+		return
+	}
+	linked.InsertBeforeNode(data, linked.Head.Data)
+	return
 }
